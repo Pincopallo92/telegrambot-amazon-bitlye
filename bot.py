@@ -1,7 +1,7 @@
 #from sre_parse import CATEGORIES
 from typing import Dict, List
 import telegram
-from amazon_api import search_items
+from amazon_paapi import AmazonAPI
 from create_messages import create_item_html
 import time
 from datetime import datetime
@@ -107,6 +107,24 @@ def run_bot(bot: telegram.Bot, categories: Dict[str, List[str]]) -> None:
             break
 
 if __name__ == "__main__":
-    # Create the bot instance
+ # Carica le variabili dal .env (se non l'hai già fatto in consts.py)
+    from dotenv import load_dotenv
+    import os
+    load_dotenv()
+    AMAZON_ACCESS_KEY = os.getenv("AMAZON_ACCESS_KEY")
+    AMAZON_SECRET_KEY = os.getenv("AMAZON_SECRET_KEY")
+    AMAZON_ASSOCIATE_TAG = os.getenv("AMAZON_ASSOCIATE_TAG")
+
+    # Creo l'oggetto AmazonAPI
+    amazon = AmazonAPI(
+        AMAZON_ACCESS_KEY,
+        AMAZON_SECRET_KEY,
+        AMAZON_ASSOCIATE_TAG,
+        "IT"
+    )
+
+    # Creo il bot Telegram
     bot = telegram.Bot(token=TOKEN)
+
+    # Avvio il bot
     run_bot(bot=bot, categories=CATEGORIES)
