@@ -14,6 +14,27 @@ logging.basicConfig(level=logging.INFO)
 
 # ******  Author: Paolo Francioso ********
 
+# ----------------- FUNZIONE SEARCH ITEMS -----------------
+def search_items(keywords, search_index="All", item_page=1):
+    api = AmazonApi(
+        access_key=AMAZON_ACCESS_KEY,
+        secret_key=AMAZON_SECRET_KEY,
+        partner_tag=AMAZON_PARTNER_TAG,
+        host=AMAZON_HOST,
+        region=AMAZON_REGION
+    )
+
+    try:
+        products = api.search_items(
+            keywords=keywords,
+            search_index=search_index,
+            item_page=item_page
+        )
+        return products.items  # restituisce la lista di prodotti
+    except Exception as e:
+        print(f"Errore nella ricerca: {e}")
+        return []
+
 def is_active() -> bool:
     now = datetime.now().time()
     return MIN_HOUR < now.hour < MAX_HOUR
