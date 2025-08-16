@@ -12,63 +12,62 @@ AMAZON_ACCESS_KEY = "YOUR_ACCESS_KEY"
 AMAZON_SECRET_KEY = "YOUR_SECRET_KEY"
 AMAZON_ASSOCIATE_TAG = "YOUR_ASSOCIATE_TAG"
 
-# --- Only EU Amazon sites ---
-AMAZON_COUNTRY = "IT"  # Add/remove EU country codes as needed
+# --- Only Amazon Italy ---
+AMAZON_COUNTRY = "IT"
 
 # --- Telegram Bot Credentials ---
-TELEGRAM_BOT_TOKEN = "7639507455:AAFxqE-xEc7MxBY0MzhH2PGQ01_pvs0QPl4"
-TELEGRAM_CHANNEL = "@lowpriceamazonitaly"  # Or numeric channel ID
+TELEGRAM_BOT_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
+TELEGRAM_CHANNEL = "@yourchannelname"  # Or numeric channel ID
 
 def get_electronics_discounts():
     keywords = ["electronics", "smartphone", "tablet", "laptop", "computer"]
     discounts = []
 
-    for country in AMAZON_COUNTRIES:
-        amazon = AmazonApi(
-            AMAZON_ACCESS_KEY,
-            AMAZON_SECRET_KEY,
-            AMAZON_ASSOCIATE_TAG,
-            country
-        )
-        for kw in keywords:
-            try:
-                results = amazon.search_items(
-                    keywords=kw,
-                    search_index="Electronics",
-                    item_count=3,
-                    resources=[
-                        "ItemInfo.Title",
-                        "Offers.Listings.Price",
-                        "Offers.Listings.SavingBasis.Price",
-                        "Offers.Summaries.HighestPrice",
-                        "Offers.Summaries.LowestPrice",
-                        "Images.Primary.Small",
-                        "DetailPageURL",
-                    ]
-                )
-                for item in results.items:
-                    title = item.title or "No Title"
-                    url = item.detail_page_url or "#"
-                    price = item.prices.get('price') if item.prices else "N/A"
-                    basis_price = item.prices.get('saving_basis_price') if item.prices else None
-                    if price != "N/A" and basis_price and float(basis_price) > float(price):
-                        discount = f"{round((float(basis_price) - float(price))/float(basis_price)*100, 1)}% off"
-                    else:
-                        discount = ""
-                    if discount:
-                        discounts.append({
-                            "title": f"[{country}] {title}",
-                            "price": price,
-                            "discount": discount,
-                            "url": url
-                        })
-            except Exception as e:
-                logging.error(f"Errore ricerca {kw}: {e}")
+    amazon = AmazonApi(
+        AMAZON_ACCESS_KEY,
+        AMAZON_SECRET_KEY,
+        AMAZON_ASSOCIATE_TAG,
+        AMAZON_COUNTRY
+    )
+    for kw in keywords:
+        try:
+            results = amazon.search_items(
+                keywords=kw,
+                search_index="Electronics",
+                item_count=3,
+                resources=[
+                    "ItemInfo.Title",
+                    "Offers.Listings.Price",
+                    "Offers.Listings.SavingBasis.Price",
+                    "Offers.Summaries.HighestPrice",
+                    "Offers.Summaries.LowestPrice",
+                    "Images.Primary.Small",
+                    "DetailPageURL",
+                ]
+            )
+            for item in results.items:
+                title = item.title or "No Title"
+                url = item.detail_page_url or "#"
+                price = item.prices.get('price') if item.prices else "N/A"
+                basis_price = item.prices.get('saving_basis_price') if item.prices else None
+                if price != "N/A" and basis_price and float(basis_price) > float(price):
+                    discount = f"{round((float(basis_price) - float(price))/float(basis_price)*100, 1)}% off"
+                else:
+                    discount = ""
+                if discount:
+                    discounts.append({
+                        "title": f"[IT] {title}",
+                        "price": price,
+                        "discount": discount,
+                        "url": url
+                    })
+        except Exception as e:
+            logging.error(f"Errore ricerca {kw}: {e}")
 
     return discounts
 
 def format_discount_message(discounts):
-    message = "🔥 Latest Electronics Discounts on Amazon Europe:\n"
+    message = "🔥 Ultime offerte elettronica su Amazon Italia:\n"
     for item in discounts:
         title = item["title"]
         price = item["price"]
