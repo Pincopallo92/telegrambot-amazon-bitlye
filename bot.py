@@ -1,61 +1,62 @@
 import os
 import logging
-from amazon_paapi import AmazonApi, Item, SearchResult
+from amazon_paapi import AmazonApi, SearchResult
+from flask import Flask
+import time
 
 # Configurazione logging
 logging.basicConfig(level=logging.INFO)
 
-# Variabili d'ambiente
+# Variabili da Render
 AMAZON_ACCESS_KEY = os.environ.get("AMAZON_ACCESS_KEY")
 AMAZON_SECRET_KEY = os.environ.get("AMAZON_SECRET_KEY")
 AMAZON_PARTNER_TAG = os.environ.get("AMAZON_PARTNER_TAG")
 AMAZON_COUNTRY = os.environ.get("AMAZON_COUNTRY", "IT")
 MAX_PAGE_SEARCH = int(os.environ.get("MAX_PAGE_SEARCH", 3))
 
-# Categorie da cercare
-CATEGORIES = ["Electronics", "CellPhones", "Computers"]
+# Categorie di esempio
+CATEGORIES = ["Electronics", "Computers", "Mobile"]
 
-# Keyword di esempio
-KEYWORDS = ["laptop", "smartphone", "tablet"]
+# Inizializza AmazonApi
+amazon = AmazonApi(
+    key=AMAZON_ACCESS_KEY,
+    secret=AMAZON_SECRET_KEY,
+    tag=AMAZON_PARTNER_TAG,
+    country=AMAZON_COUNTRY
+)
 
-# Inizializza Amazon API
-try:
-    amazon = AmazonApi(
-        key=AMAZON_ACCESS_KEY,
-        secret=AMAZON_SECRET_KEY,
-        tag=AMAZON_PARTNER_TAG,
-        country="IT"
-    )
-except Exception as e:
-    logging.error(f"Errore inizializzazione AmazonApi: {e}")
-    raise e
+# Flask per Render
+app = Flask(__name__)
 
-def search_items(keyword, category, max_pages=MAX_PAGE_SEARCH):
-    results = []
-    for page in range(1, max_pages + 1):
-        try:
-            logging.info(f"Cercando '{keyword}' nella categoria '{category}', pagina {page}")
-            search_result: SearchResult = amazon.search_items(
-                keywords=keyword,
-                search_index=category,
-                item_page=page
-            )
-            if search_result.items:
-                results.extend(search_result.items)
-        except Exception as e:
-            logging.error(f"Errore AmazonAPI: {e}")
-    return results
+@app.route("/")
+def home():
+    return "Bot attivo"
 
-def main():
-    for keyword in KEYWORDS:
+# Funzione principale di ricerca
+def search_amazon():
+    keywords = ["laptop", "smartphone", "tablet"]  # puoi aggiungere altre parole chiave
+    for keyword in keywords:
         for category in CATEGORIES:
-            items = search_items(keyword, category)
-            for item in items:
-                # Logging sicuro degli attributi esistenti
-                title = getattr(item, "title", "N/A")
-                asin = getattr(item, "asin", "N/A")
-                url = getattr(item, "detail_page_url", "N/A")
-                logging.info(f"{title} - {asin} - {url}")
+            logging.info(f"Cercando '{keyword}' nella categoria '{category}'")
+            for page in range(1, MAX_PAGE_SEARCH + 1):
+                try:
+                    # AmazonApi restituisce SearchResult, usare .items
+                    result: SearchResult = amazon.search_items(
+                        keywords=keyword,
+                        search_index=category,
+                        item_page=page
+                    )
+                    for item in result.items:
+                        # Logging dei dettagli
+                        logging.info(f"{item.item_info.title.display_value} - {item.asin} - {item.detail_page_url}")
+                    time.sleep(1)  # evita throttling
+                except Exception as e:
+                    logging.error(f"Errore AmazonAPI: {e}")
+                    time.sleep(5)  # attesa prima di riprovare
 
 if __name__ == "__main__":
-    main()
+    # Avvia il bot in background e Flask
+    from threading import Thread
+    t = Thread(target=search_amazon)
+    t.start()
+    app.run(host="0.0.0.0", port=10000)
