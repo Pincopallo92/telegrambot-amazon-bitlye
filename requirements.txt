@@ -1,4 +1,2 @@
-python-amazon-paapi
+python-amazon-paapi==0.4.4
 requests
-git+https://github.com/sergioteula/python-amazon-paapi.git
-python-dotenv
