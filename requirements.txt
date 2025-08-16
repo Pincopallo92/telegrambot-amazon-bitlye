@@ -1,5 +1,4 @@
-python-telegram-bot==20.3
+python-telegram-bot==20.5
 requests
+git+https://github.com/sergioteula/python-amazon-paapi.git
 python-dotenv
-beautifulsoup4
-lxml
