@@ -31,16 +31,18 @@ def search_items(keyword, category):
     results = []
     for page in range(1, MAX_PAGE_SEARCH + 1):
         try:
-            items = amazon.search_items(
+            search_result = amazon.search_items(
                 keywords=keyword,
                 search_index=category,
                 item_page=page
             )
-            results.extend(items)
-        except Exception as e:  # cattura tutti gli errori
+            if hasattr(search_result, "items") and search_result.items:
+                results.extend(search_result.items)
+        except Exception as e:
             logging.error(f"Errore AmazonAPI: {e}")
-            break  # Esce dal ciclo se c'è un errore
+            break
     return results
+
 
 # Esempio di utilizzo
 if __name__ == "__main__":
