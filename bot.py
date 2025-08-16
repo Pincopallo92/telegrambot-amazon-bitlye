@@ -1,22 +1,18 @@
 import os
-import logging
-import requests
 import time
 import random
 from amazon_paapi import AmazonApi
+import requests
 
-# --- Configurazione Logging ---
-logging.basicConfig(level=logging.INFO)
-
-# --- Amazon PA-API credentials (da variabili d'ambiente) ---
-AMAZON_ACCESS_KEY = os.environ.get("AMAZON_ACCESS_KEY")
-AMAZON_SECRET_KEY = os.environ.get("AMAZON_SECRET_KEY")
-AMAZON_ASSOCIATE_TAG = os.environ.get("AMAZON_ASSOCIATE_TAG")
-AMAZON_COUNTRY = os.environ.get("AMAZON_COUNTRY", "IT")
+# --- Amazon PA-API credentials ---
+AMAZON_ACCESS_KEY = "YOUR_ACCESS_KEY"
+AMAZON_SECRET_KEY = "YOUR_SECRET_KEY"
+AMAZON_ASSOCIATE_TAG = "YOUR_ASSOCIATE_TAG"
+AMAZON_COUNTRY = "IT"  # e.g., 'US', 'IT', 'DE', etc.
 
 # --- Telegram Bot Credentials ---
-TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
-TELEGRAM_CHANNEL = os.environ.get("TELEGRAM_CHANNEL")
+TELEGRAM_BOT_TOKEN = "7639507455:AAFxqE-xEc7MxBY0MzhH2PGQ01_pvs0QPl4"
+TELEGRAM_CHANNEL = "@lowpriceamazonitaly"  # Or numeric channel ID
 
 def get_electronics_discounts():
     amazon = AmazonApi(
@@ -33,58 +29,61 @@ def get_electronics_discounts():
             results = amazon.search_items(
                 keywords=kw,
                 search_index="Electronics",
-                item_count=3,
+                item_count=3,  # Adjust how many items per keyword
                 resources=[
                     "ItemInfo.Title",
                     "Offers.Listings.Price",
                     "Offers.Listings.SavingBasis.Price",
+                    "Offers.Summaries.HighestPrice",
+                    "Offers.Summaries.LowestPrice",
                     "Images.Primary.Small",
                     "DetailPageURL",
                 ]
             )
-            if hasattr(results, "items"):
-                items.extend(results.items)
+            items.extend(results.items)
         except Exception as e:
-            logging.error(f"Errore ricerca {kw}: {e}")
+            print(f"Error fetching items for {kw}: {e}")
 
     discounts = []
     for item in items:
         try:
-            title = getattr(item.item_info.title, "display_value", "No Title")
-            url = getattr(item, "detail_page_url", "#")
-
-            price = None
-            discount = ""
-
-            if item.offers and item.offers.listings:
-                price_info = item.offers.listings[0].price
-                if price_info:
-                    price = price_info.amount
-                    if price_info.savings and price_info.savings.percentage:
-                        discount = f"{price_info.savings.percentage}% off"
-
+            title = item.title or "No Title"
+            url = item.detail_page_url or "#"
+            price = item.prices.get('price') if item.prices else "N/A"
+            basis_price = item.prices.get('saving_basis_price') if item.prices else None
+            if price != "N/A" and basis_price and float(basis_price) > float(price):
+                discount = f"{round((float(basis_price) - float(price))/float(basis_price)*100, 1)}% off"
+            else:
+                discount = ""
             discounts.append({
                 "title": title,
-                "price": f"{price} €" if price else "N/A",
+                "price": price,
                 "discount": discount,
                 "url": url
             })
         except Exception as e:
-            logging.error(f"Errore processando item: {e}")
+            print(f"Error processing item: {e}")
 
+    # Only return discounts with a real discount
+    discounts = [d for d in discounts if d["discount"]]
     return discounts
 
 def format_discount_message(discounts):
-    message = "🔥 Offerte Amazon in Elettronica:\n"
+    # Only called if there are objects
+    message = "🔥 Latest Electronics Discounts on Amazon:\n"
     for item in discounts:
-        line = f"\n• [{item['title']}]({item['url']}) - {item['price']}"
-        if item["discount"]:
-            line += f" ({item['discount']})"
+        title = item["title"]
+        price = item["price"]
+        discount = item["discount"]
+        url = item["url"]
+        line = f"\n• [{title}]({url}) - {price} ({discount})"
         message += line
     return message
 
 def send_telegram_message(text):
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    url = (
+        f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    )
     data = {
         "chat_id": TELEGRAM_CHANNEL,
         "text": text,
@@ -97,18 +96,21 @@ def send_telegram_message(text):
 
 def main():
     while True:
-        discounts = get_electronics_discounts()
-        if discounts:  # ✅ Manda solo se ci sono offerte
-            message = format_discount_message(discounts)
-            send_telegram_message(message)
-            logging.info("✅ Messaggio inviato al canale Telegram.")
-        else:
-            logging.info("ℹ️ Nessuna nuova offerta trovata, non invio nulla.")
-        
-        # ⏱️ Attesa random tra 50 e 70 minuti
-        delay = random.randint(3000, 4200)  # secondi
-        logging.info(f"⏳ Prossimo controllo tra {delay//60} minuti...")
-        time.sleep(delay)
+        try:
+            discounts = get_electronics_discounts()
+            if discounts:
+                message = format_discount_message(discounts)
+                send_telegram_message(message)
+                print("Message sent to Telegram channel.")
+            else:
+                print("No discounts found. No message sent.")
+        except Exception as e:
+            print(f"Error: {e}")
+
+        # Sleep for a random interval between 50 and 70 minutes
+        sleep_minutes = random.randint(50, 70)
+        print(f"Sleeping for {sleep_minutes} minutes...")
+        time.sleep(sleep_minutes * 60)
 
 if __name__ == "__main__":
     main()
