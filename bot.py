@@ -116,7 +116,7 @@ if __name__ == "__main__":
     AMAZON_ASSOCIATE_TAG = os.getenv("AMAZON_ASSOCIATE_TAG")
 
     # Creo l'oggetto AmazonAPI
-    amazon = AmazonAPI(
+    amazon = AmazonApi(
         AMAZON_ACCESS_KEY,
         AMAZON_SECRET_KEY,
         AMAZON_ASSOCIATE_TAG,
