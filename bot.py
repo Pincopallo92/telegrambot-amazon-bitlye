@@ -88,10 +88,12 @@ def run_bot(bot: telegram.Bot, categories: Dict[str, List[str]]) -> None:
                         random.shuffle(categories[category])
                         for keyword in categories[category]:
                             for page in range(1, MAX_PAGE_SEARCH):
-                                items = search_items(keyword, category, item_page=page)
-                                time.sleep(1)
-                                if items:
-                                    items_full.extend(items)
+        items = search_items(keyword, category, item_page=page)
+        time.sleep(1)
+        if items is not None:
+            items_full.extend(items)
+except Exception as e:
+    logging.error(f"Errore durante la ricerca degli articoli: {e}")
                         raise StopIteration
                     counter += 1
             except StopIteration:
