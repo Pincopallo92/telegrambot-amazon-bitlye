@@ -85,8 +85,9 @@ def run_bot(bot: telegram.Bot, categories: Dict[str, List[str]]) -> None:
                     if counter == random_array:
                         random.shuffle(categories[category])
                         for keyword in categories[category]:
-                            for page in range(1, MAX_PAGE_SEARCH + 1):
-                                items = search_items(keyword, search_index=category, item_page=page)
+                            for page in range(1, min(MAX_PAGE_SEARCH, 10) + 1):
+    items = amazon.search_items(keyword, search_index=category, item_page=page)
+
                                 time.sleep(1)
                                 if items:
                                     items_full.extend(items)
