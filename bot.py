@@ -3,6 +3,9 @@ import time
 import random
 from amazon_paapi import AmazonApi
 import requests
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 # --- Amazon PA-API credentials ---
 AMAZON_ACCESS_KEY = "YOUR_ACCESS_KEY"
@@ -14,7 +17,7 @@ AMAZON_COUNTRIES = ["DE", "FR", "IT", "ES", "NL", "SE", "PL", "BE"]  # Add/remov
 
 # --- Telegram Bot Credentials ---
 TELEGRAM_BOT_TOKEN = "7639507455:AAFxqE-xEc7MxBY0MzhH2PGQ01_pvs0QPl4"
-TELEGRAM_CHANNEL = "lowpriceamazonitaly"  # Or numeric channel ID
+TELEGRAM_CHANNEL = "@lowpriceamazonitaly"  # Or numeric channel ID
 
 def get_electronics_discounts():
     keywords = ["electronics", "smartphone", "tablet", "laptop", "computer"]
@@ -30,19 +33,19 @@ def get_electronics_discounts():
         for kw in keywords:
             try:
                 results = amazon.search_items(
-    keywords=kw,
-    search_index="Electronics",
-    item_count=3,
-    resources=[
-        "ItemInfo.Title",
-        "Offers.Listings.Price",
-        "Offers.Listings.SavingBasis.Price",
-        "Offers.Summaries.HighestPrice",
-        "Offers.Summaries.LowestPrice",
-        "Images.Primary.Small",
-        "DetailPageURL",
-    ]
-)
+                    keywords=kw,
+                    search_index="Electronics",
+                    item_count=3,
+                    resources=[
+                        "ItemInfo.Title",
+                        "Offers.Listings.Price",
+                        "Offers.Listings.SavingBasis.Price",
+                        "Offers.Summaries.HighestPrice",
+                        "Offers.Summaries.LowestPrice",
+                        "Images.Primary.Small",
+                        "DetailPageURL",
+                    ]
+                )
                 for item in results.items:
                     title = item.title or "No Title"
                     url = item.detail_page_url or "#"
@@ -60,7 +63,7 @@ def get_electronics_discounts():
                             "url": url
                         })
             except Exception as e:
-                print(f"Error fetching items for '{kw}' in {country}: {e}")
+                logging.error(f"Errore ricerca {kw}: {e}")
 
     return discounts
 
@@ -96,15 +99,15 @@ def main():
             if discounts:
                 message = format_discount_message(discounts)
                 send_telegram_message(message)
-                print("Message sent to Telegram channel.")
+                logging.info("Messaggio inviato al canale Telegram.")
             else:
-                print("No discounts found. No message sent.")
+                logging.info("ℹ️ Nessuna nuova offerta trovata, non invio nulla.")
         except Exception as e:
-            print(f"Error: {e}")
+            logging.error(f"Errore: {e}")
 
         # Sleep for a random interval between 50 and 70 minutes
         sleep_minutes = random.randint(50, 70)
-        print(f"Sleeping for {sleep_minutes} minutes...")
+        logging.info(f"⏳ Prossimo controllo tra {sleep_minutes} minuti...")
         time.sleep(sleep_minutes * 60)
 
 if __name__ == "__main__":
