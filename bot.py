@@ -2,6 +2,7 @@
 from typing import Dict, List
 import telegram
 from amazon_paapi import AmazonApi
+from amazon_paapi import search_items
 from create_messages import create_item_html
 import time
 from datetime import datetime
