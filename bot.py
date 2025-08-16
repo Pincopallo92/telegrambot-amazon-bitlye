@@ -30,19 +30,19 @@ def get_electronics_discounts():
         for kw in keywords:
             try:
                 results = amazon.search_items(
-                    keywords=kw,
-                    search_index="Electronics",
-                    item_count=3,
-                    resources=[
-                        "ItemInfo.Title",
-                        "Offers.Listings.Price",
-                        "Offers.Listings.SavingBasis.Price",
-                        "Offers.Summaries.HighestPrice",
-                        "Offers.Summaries.LowestPrice",
-                        "Images.Primary.Small",
-                        "DetailPageURL",
-                    ]
-                )
+    keywords=kw,
+    search_index="Electronics",
+    item_count=3,
+    resources=[
+        "ItemInfo.Title",
+        "Offers.Listings.Price",
+        "Offers.Listings.SavingBasis.Price",
+        "Offers.Summaries.HighestPrice",
+        "Offers.Summaries.LowestPrice",
+        "Images.Primary.Small",
+        "DetailPageURL",
+    ]
+)
                 for item in results.items:
                     title = item.title or "No Title"
                     url = item.detail_page_url or "#"
