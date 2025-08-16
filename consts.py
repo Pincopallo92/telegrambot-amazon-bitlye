@@ -11,6 +11,9 @@ CATEGORIES = {
     "libri": ["python", "algoritmi", "fantascienza"],
     "elettronica": ["cuffie", "mouse", "tastiera"]
 }
+BITLY_ACTIVE = False  # o True se vuoi usare Bitly
+BITLY_LOGIN = ""
+BITLY_API_KEY = ""
 
 # Chiavi Amazon
 AMAZON_ACCESS_KEY = "AKPADTHF2X1755088506"
