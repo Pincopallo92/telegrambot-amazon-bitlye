@@ -51,4 +51,5 @@ if __name__ == "__main__":
         logging.info(f"Cercando '{keyword}' nella categoria '{category}'")
         items = search_items(keyword, category)
         for item in items:
-            logging.info(f"{item.title} - {item.asin} - {item.detail_page_url}")
+            logging.info(f"{item.item_info.title.display_value} - {item.asin} - {item.detail_page_url}")
+
