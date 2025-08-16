@@ -1,11 +1,11 @@
 import os
 import logging
-from amazon_paapi import AmazonApi
+from amazon_paapi import AmazonApi, Item, SearchResult
 
 # Configurazione logging
 logging.basicConfig(level=logging.INFO)
 
-# Variabili ambientali
+# Variabili d'ambiente
 AMAZON_ACCESS_KEY = os.environ.get("AMAZON_ACCESS_KEY")
 AMAZON_SECRET_KEY = os.environ.get("AMAZON_SECRET_KEY")
 AMAZON_PARTNER_TAG = os.environ.get("AMAZON_PARTNER_TAG")
@@ -13,43 +13,49 @@ AMAZON_COUNTRY = os.environ.get("AMAZON_COUNTRY", "IT")
 MAX_PAGE_SEARCH = int(os.environ.get("MAX_PAGE_SEARCH", 3))
 
 # Categorie da cercare
-CATEGORIES = ["Electronics", "Computers", "CellPhones"]
+CATEGORIES = ["Electronics", "CellPhones", "Computers"]
 
-# Inizializza AmazonApi
+# Keyword di esempio
+KEYWORDS = ["laptop", "smartphone", "tablet"]
+
+# Inizializza Amazon API
 try:
     amazon = AmazonApi(
         key=AMAZON_ACCESS_KEY,
         secret=AMAZON_SECRET_KEY,
         tag=AMAZON_PARTNER_TAG,
-        country=AMAZON_COUNTRY
+        country="IT"
     )
 except Exception as e:
     logging.error(f"Errore inizializzazione AmazonApi: {e}")
-    exit(1)
+    raise e
 
-def search_items(keyword, category):
+def search_items(keyword, category, max_pages=MAX_PAGE_SEARCH):
     results = []
-    for page in range(1, MAX_PAGE_SEARCH + 1):
+    for page in range(1, max_pages + 1):
         try:
-            search_result = amazon.search_items(
+            logging.info(f"Cercando '{keyword}' nella categoria '{category}', pagina {page}")
+            search_result: SearchResult = amazon.search_items(
                 keywords=keyword,
                 search_index=category,
                 item_page=page
             )
-            if hasattr(search_result, "items") and search_result.items:
+            if search_result.items:
                 results.extend(search_result.items)
         except Exception as e:
             logging.error(f"Errore AmazonAPI: {e}")
-            break
     return results
 
+def main():
+    for keyword in KEYWORDS:
+        for category in CATEGORIES:
+            items = search_items(keyword, category)
+            for item in items:
+                # Logging sicuro degli attributi esistenti
+                title = getattr(item, "title", "N/A")
+                asin = getattr(item, "asin", "N/A")
+                url = getattr(item, "detail_page_url", "N/A")
+                logging.info(f"{title} - {asin} - {url}")
 
-# Esempio di utilizzo
 if __name__ == "__main__":
-    keyword = "laptop"
-    for category in CATEGORIES:
-        logging.info(f"Cercando '{keyword}' nella categoria '{category}'")
-        items = search_items(keyword, category)
-        for item in items:
-            logging.info(f"{item.item_info.title.display_value} - {item.asin} - {item.detail_page_url}")
-
+    main()
