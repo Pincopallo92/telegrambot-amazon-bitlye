@@ -1,12 +1,14 @@
 import os
 import logging
 import requests
+import time
+import random
 from amazon_paapi import AmazonApi
 
 # --- Configurazione Logging ---
 logging.basicConfig(level=logging.INFO)
 
-# --- Amazon PA-API credentials (usa variabili d'ambiente) ---
+# --- Amazon PA-API credentials (da variabili d'ambiente) ---
 AMAZON_ACCESS_KEY = os.environ.get("AMAZON_ACCESS_KEY")
 AMAZON_SECRET_KEY = os.environ.get("AMAZON_SECRET_KEY")
 AMAZON_ASSOCIATE_TAG = os.environ.get("AMAZON_ASSOCIATE_TAG")
@@ -52,7 +54,6 @@ def get_electronics_discounts():
             url = getattr(item, "detail_page_url", "#")
 
             price = None
-            basis_price = None
             discount = ""
 
             if item.offers and item.offers.listings:
@@ -61,8 +62,6 @@ def get_electronics_discounts():
                     price = price_info.amount
                     if price_info.savings and price_info.savings.percentage:
                         discount = f"{price_info.savings.percentage}% off"
-                if price_info.saving_basis:
-                    basis_price = price_info.saving_basis.amount
 
             discounts.append({
                 "title": title,
@@ -76,8 +75,6 @@ def get_electronics_discounts():
     return discounts
 
 def format_discount_message(discounts):
-    if not discounts:
-        return "❌ Nessun nuovo sconto trovato."
     message = "🔥 Offerte Amazon in Elettronica:\n"
     for item in discounts:
         line = f"\n• [{item['title']}]({item['url']}) - {item['price']}"
@@ -99,10 +96,19 @@ def send_telegram_message(text):
     return response.json()
 
 def main():
-    discounts = get_electronics_discounts()
-    message = format_discount_message(discounts)
-    send_telegram_message(message)
-    logging.info("✅ Messaggio inviato al canale Telegram.")
+    while True:
+        discounts = get_electronics_discounts()
+        if discounts:  # ✅ Manda solo se ci sono offerte
+            message = format_discount_message(discounts)
+            send_telegram_message(message)
+            logging.info("✅ Messaggio inviato al canale Telegram.")
+        else:
+            logging.info("ℹ️ Nessuna nuova offerta trovata, non invio nulla.")
+        
+        # ⏱️ Attesa random tra 50 e 70 minuti
+        delay = random.randint(3000, 4200)  # secondi
+        logging.info(f"⏳ Prossimo controllo tra {delay//60} minuti...")
+        time.sleep(delay)
 
 if __name__ == "__main__":
     main()
