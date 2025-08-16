@@ -13,7 +13,7 @@ AMAZON_SECRET_KEY = "YOUR_SECRET_KEY"
 AMAZON_ASSOCIATE_TAG = "YOUR_ASSOCIATE_TAG"
 
 # --- Only EU Amazon sites ---
-AMAZON_COUNTRIES = "IT"  # Add/remove EU country codes as needed
+AMAZON_COUNTRY = "IT"  # Add/remove EU country codes as needed
 
 # --- Telegram Bot Credentials ---
 TELEGRAM_BOT_TOKEN = "7639507455:AAFxqE-xEc7MxBY0MzhH2PGQ01_pvs0QPl4"
