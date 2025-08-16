@@ -5,31 +5,56 @@ from create_messages import create_item_html
 import time
 from datetime import datetime
 import random
-import logging
-from consts import *  # Assicurati che qui ci siano TOKEN, CHANNEL_NAME, CATEGORIES, ecc.
 import os
+import logging
+
+logging.basicConfig(level=logging.INFO)
+
+# ******  Author: Paolo Francioso ********
+
+# Environment variables
+TOKEN = os.environ.get("TOKEN")
+CHANNEL_NAME = os.environ.get("CHANNEL_NAME")
 
 AMAZON_ACCESS_KEY = os.environ.get("AMAZON_ACCESS_KEY")
 AMAZON_SECRET_KEY = os.environ.get("AMAZON_SECRET_KEY")
 AMAZON_PARTNER_TAG = os.environ.get("AMAZON_PARTNER_TAG")
-AMAZON_HOST = os.environ.get("AMAZON_HOST")
-AMAZON_REGION = os.environ.get("AMAZON_REGION").upper()
-CHANNEL_NAME = os.environ.get("CHANNEL_NAME")
-TOKEN = os.environ.get("TOKEN")
-default_api = AmazonApi(
+AMAZON_REGION = os.environ.get("AMAZON_REGION", "IT").upper()
+
+MIN_HOUR = int(os.environ.get("MIN_HOUR", 9))
+MAX_HOUR = int(os.environ.get("MAX_HOUR", 21))
+NUMBER_OF_MESSAGES = int(os.environ.get("NUMBER_OF_MESSAGES", 1))
+MAX_PAGE_SEARCH = int(os.environ.get("MAX_PAGE_SEARCH", 2))
+PAUSE_MINUTES = int(os.environ.get("PAUSE_MINUTES", 5))
+
+CATEGORIES = {
+    "Elettronica": ["telefono", "computer", "tablet"],
+    "Casa": ["aspirapolvere", "forno", "lampada"]
+}
+
+# Create AmazonApi instance
+amazon = AmazonApi(
     key=AMAZON_ACCESS_KEY,
     secret=AMAZON_SECRET_KEY,
     tag=AMAZON_PARTNER_TAG,
     country=AMAZON_REGION
 )
 
-logging.basicConfig(level=logging.INFO)
-
-# ******  Author: Paolo Francioso ********
-
 def is_active() -> bool:
     now = datetime.now().time()
     return MIN_HOUR < now.hour < MAX_HOUR
+
+def search_items(keywords, search_index="All", item_page=1):
+    try:
+        items = amazon.search_items(
+            keywords=keywords,
+            search_index=search_index,
+            item_page=item_page
+        )
+        return items
+    except Exception as e:
+        logging.info(f"Error in search_items: {e}")
+        return []
 
 def send_consecutive_messages(list_of_struct: List[str], number_of_messages=int) -> None:
     for i in range(number_of_messages):
@@ -44,35 +69,15 @@ def send_consecutive_messages(list_of_struct: List[str], number_of_messages=int)
     return_counter = pointer_2 + 1    
     return list_of_struct[return_counter:]
 
-# Funzione per cercare prodotti su Amazon usando AmazonApi
-def search_items(keywords, search_index="All", item_page=1):
-    api = AmazonApi(
-        access_key=AMAZON_ACCESS_KEY,
-        secret_key=AMAZON_SECRET_KEY,
-        partner_tag=AMAZON_PARTNER_TAG,
-        host=AMAZON_HOST,
-        region=AMAZON_REGION
-    )
-    try:
-        response = api.search_items(
-            keywords=keywords,
-            search_index=search_index,
-            item_page=item_page
-        )
-        return response.items if response.items else []
-    except Exception as e:
-        logging.info(f"Errore nella ricerca Amazon: {e}")
-        return []
-
 def run_bot(bot: telegram.Bot, categories: Dict[str, List[str]]) -> None:
-    min_result = NUMBER_OF_MESSAGES*2 - 1
-    res_except = NUMBER_OF_MESSAGES*2
-
+    min_result = NUMBER_OF_MESSAGES * 2 - 1
+    res_except = NUMBER_OF_MESSAGES * 2
+    
     while True:
         try:
             items_full = []
 
-            # randomizza categorie e keyword
+            # randomize categories and keywords
             randomizer = len(categories) - 1
             random_array = random.randint(0, randomizer)
             
@@ -87,12 +92,13 @@ def run_bot(bot: telegram.Bot, categories: Dict[str, List[str]]) -> None:
                                 time.sleep(1)
                                 if items:
                                     items_full.extend(items)
-                            raise StopIteration
+                        raise StopIteration
                     counter += 1
             except StopIteration:
-                pass
+                pass           
 
             logging.info(f'{5 * "*"} Requests Completed {5 * "*"}')
+
             random.shuffle(items_full)
             res = create_item_html(items_full, False)
 
@@ -111,9 +117,3 @@ def run_bot(bot: telegram.Bot, categories: Dict[str, List[str]]) -> None:
                     time.sleep(60 * 5)
 
         except Exception as e:
-            logging.info(e)
-            break
-
-if __name__ == "__main__":
-    bot = telegram.Bot(token=TOKEN)
-    run_bot(bot=bot, categories=CATEGORIES)
