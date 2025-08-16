@@ -22,7 +22,7 @@ amazon = AmazonApi(
     key=AMAZON_ACCESS_KEY,
     secret=AMAZON_SECRET_KEY,
     tag=AMAZON_PARTNER_TAG,
-    country=AMAZON_COUNTRY
+    country="IT"
 )
 
 # Flask per Render
