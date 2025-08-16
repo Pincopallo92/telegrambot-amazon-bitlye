@@ -1,4 +1,4 @@
-python-telegram-bot==20.5
+python-amazon-paapi
 requests
 git+https://github.com/sergioteula/python-amazon-paapi.git
 python-dotenv
