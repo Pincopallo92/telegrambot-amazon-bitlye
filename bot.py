@@ -20,7 +20,12 @@ TELEGRAM_BOT_TOKEN = "7639507455:AAFxqE-xEc7MxBY0MzhH2PGQ01_pvs0QPl4"
 TELEGRAM_CHANNEL = "@lowpriceamazonitaly"  # Or numeric channel ID
 
 def get_electronics_discounts():
-    keywords = ["electronics", "smartphone", "tablet", "laptop", "computer"]
+    keywords = keywords = [
+    "electronics", "smartphone", "tablet", "laptop", "computer",
+    "tv", "audio", "fotocamera", "camera", "console", "monitor",
+    "stampante", "smartwatch", "router", "hard disk", "ssd",
+    "accessori pc", "drone", "elettrodomestici"
+]
     discounts = []
 
     amazon = AmazonApi(
