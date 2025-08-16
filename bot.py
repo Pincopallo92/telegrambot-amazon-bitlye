@@ -16,6 +16,12 @@ AMAZON_HOST = os.environ.get("AMAZON_HOST")
 AMAZON_REGION = os.environ.get("AMAZON_REGION")
 CHANNEL_NAME = os.environ.get("CHANNEL_NAME")
 TOKEN = os.environ.get("TOKEN")
+default_api = AmazonApi(
+    key=AMAZON_ACCESS_KEY,
+    secret=AMAZON_SECRET_KEY,
+    tag=AMAZON_PARTNER_TAG,
+    country=AMAZON_REGION
+)
 
 logging.basicConfig(level=logging.INFO)
 
