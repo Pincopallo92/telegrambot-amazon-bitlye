@@ -8,69 +8,64 @@ import requests
 AMAZON_ACCESS_KEY = "YOUR_ACCESS_KEY"
 AMAZON_SECRET_KEY = "YOUR_SECRET_KEY"
 AMAZON_ASSOCIATE_TAG = "YOUR_ASSOCIATE_TAG"
-AMAZON_COUNTRY = "IT"  # e.g., 'US', 'IT', 'DE', etc.
+
+# --- Only EU Amazon sites ---
+AMAZON_COUNTRIES = ["DE", "FR", "IT", "ES", "NL", "SE", "PL", "BE"]  # Add/remove EU country codes as needed
 
 # --- Telegram Bot Credentials ---
 TELEGRAM_BOT_TOKEN = "7639507455:AAFxqE-xEc7MxBY0MzhH2PGQ01_pvs0QPl4"
-TELEGRAM_CHANNEL = "@lowpriceamazonitaly"  # Or numeric channel ID
+TELEGRAM_CHANNEL = "lowpriceamazonitaly"  # Or numeric channel ID
 
 def get_electronics_discounts():
-    amazon = AmazonApi(
-        AMAZON_ACCESS_KEY,
-        AMAZON_SECRET_KEY,
-        AMAZON_ASSOCIATE_TAG,
-        AMAZON_COUNTRY
-    )
-
     keywords = ["electronics", "smartphone", "tablet", "laptop", "computer"]
-    items = []
-    for kw in keywords:
-        try:
-            results = amazon.search_items(
-                keywords=kw,
-                search_index="Electronics",
-                item_count=3,  # Adjust how many items per keyword
-                resources=[
-                    "ItemInfo.Title",
-                    "Offers.Listings.Price",
-                    "Offers.Listings.SavingBasis.Price",
-                    "Offers.Summaries.HighestPrice",
-                    "Offers.Summaries.LowestPrice",
-                    "Images.Primary.Small",
-                    "DetailPageURL",
-                ]
-            )
-            items.extend(results.items)
-        except Exception as e:
-            print(f"Error fetching items for {kw}: {e}")
-
     discounts = []
-    for item in items:
-        try:
-            title = item.title or "No Title"
-            url = item.detail_page_url or "#"
-            price = item.prices.get('price') if item.prices else "N/A"
-            basis_price = item.prices.get('saving_basis_price') if item.prices else None
-            if price != "N/A" and basis_price and float(basis_price) > float(price):
-                discount = f"{round((float(basis_price) - float(price))/float(basis_price)*100, 1)}% off"
-            else:
-                discount = ""
-            discounts.append({
-                "title": title,
-                "price": price,
-                "discount": discount,
-                "url": url
-            })
-        except Exception as e:
-            print(f"Error processing item: {e}")
 
-    # Only return discounts with a real discount
-    discounts = [d for d in discounts if d["discount"]]
+    for country in AMAZON_COUNTRIES:
+        amazon = AmazonApi(
+            AMAZON_ACCESS_KEY,
+            AMAZON_SECRET_KEY,
+            AMAZON_ASSOCIATE_TAG,
+            country
+        )
+        for kw in keywords:
+            try:
+                results = amazon.search_items(
+                    keywords=kw,
+                    search_index="Electronics",
+                    item_count=3,
+                    resources=[
+                        "ItemInfo.Title",
+                        "Offers.Listings.Price",
+                        "Offers.Listings.SavingBasis.Price",
+                        "Offers.Summaries.HighestPrice",
+                        "Offers.Summaries.LowestPrice",
+                        "Images.Primary.Small",
+                        "DetailPageURL",
+                    ]
+                )
+                for item in results.items:
+                    title = item.title or "No Title"
+                    url = item.detail_page_url or "#"
+                    price = item.prices.get('price') if item.prices else "N/A"
+                    basis_price = item.prices.get('saving_basis_price') if item.prices else None
+                    if price != "N/A" and basis_price and float(basis_price) > float(price):
+                        discount = f"{round((float(basis_price) - float(price))/float(basis_price)*100, 1)}% off"
+                    else:
+                        discount = ""
+                    if discount:
+                        discounts.append({
+                            "title": f"[{country}] {title}",
+                            "price": price,
+                            "discount": discount,
+                            "url": url
+                        })
+            except Exception as e:
+                print(f"Error fetching items for '{kw}' in {country}: {e}")
+
     return discounts
 
 def format_discount_message(discounts):
-    # Only called if there are objects
-    message = "🔥 Latest Electronics Discounts on Amazon:\n"
+    message = "🔥 Latest Electronics Discounts on Amazon Europe:\n"
     for item in discounts:
         title = item["title"]
         price = item["price"]
