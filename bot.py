@@ -16,8 +16,8 @@ AMAZON_ASSOCIATE_TAG = "YOUR_ASSOCIATE_TAG"
 AMAZON_COUNTRY = "IT"
 
 # --- Telegram Bot Credentials ---
-TELEGRAM_BOT_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
-TELEGRAM_CHANNEL = "@yourchannelname"  # Or numeric channel ID
+TELEGRAM_BOT_TOKEN = "7639507455:AAFxqE-xEc7MxBY0MzhH2PGQ01_pvs0QPl4"
+TELEGRAM_CHANNEL = "@lowpriceamazonitaly"  # Or numeric channel ID
 
 def get_electronics_discounts():
     keywords = ["electronics", "smartphone", "tablet", "laptop", "computer"]
