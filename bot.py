@@ -1,6 +1,6 @@
 import os
 import logging
-from amazon_paapi import AmazonApi, AmazonApiException
+from amazon_paapi import AmazonApi
 
 # Configurazione logging
 logging.basicConfig(level=logging.INFO)
@@ -21,7 +21,7 @@ try:
         key=AMAZON_ACCESS_KEY,
         secret=AMAZON_SECRET_KEY,
         tag=AMAZON_PARTNER_TAG,
-        country="IT"
+        country=AMAZON_COUNTRY
     )
 except Exception as e:
     logging.error(f"Errore inizializzazione AmazonApi: {e}")
@@ -37,12 +37,9 @@ def search_items(keyword, category):
                 item_page=page
             )
             results.extend(items)
-        except AmazonApiException as e:
+        except Exception as e:  # cattura tutti gli errori
             logging.error(f"Errore AmazonAPI: {e}")
             break  # Esce dal ciclo se c'è un errore
-        except Exception as e:
-            logging.error(f"Errore generico: {e}")
-            break
     return results
 
 # Esempio di utilizzo
