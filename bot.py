@@ -7,6 +7,15 @@ from datetime import datetime
 import random
 import logging
 from consts import *  # Assicurati che qui ci siano TOKEN, CHANNEL_NAME, CATEGORIES, ecc.
+import os
+
+AMAZON_ACCESS_KEY = os.environ.get("AMAZON_ACCESS_KEY")
+AMAZON_SECRET_KEY = os.environ.get("AMAZON_SECRET_KEY")
+AMAZON_PARTNER_TAG = os.environ.get("AMAZON_PARTNER_TAG")
+AMAZON_HOST = os.environ.get("AMAZON_HOST")
+AMAZON_REGION = os.environ.get("AMAZON_REGION")
+CHANNEL_NAME = os.environ.get("CHANNEL_NAME")
+TOKEN = os.environ.get("TOKEN")
 
 logging.basicConfig(level=logging.INFO)
 
